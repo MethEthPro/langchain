@@ -4,10 +4,8 @@ from pydantic import BaseModel
 from langchain_groq import ChatGroq
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.messages import HumanMessage, AIMessage
 import os
 from dotenv import load_dotenv
-from typing import List, Dict
 
 # Load environment variables
 load_dotenv()
@@ -35,39 +33,33 @@ llm = ChatGroq(
 )
 output_parser = StrOutputParser()
 
-# Create a default system message
-DEFAULT_SYSTEM_MESSAGE = """You are a helpful AI assistant. Be concise and clear in your responses. 
-Maintain context of the conversation to provide relevant and coherent answers."""
-
 @app.get("/")
 async def read_root():
     return {"message": "Welcome to LangChain API with Groq"}
 
-@app.post("/ask")
+# Note: Adding trailing slash to make it match both with and without slash
+@app.post("/ask/")
 async def get_answer(question: Question):
     try:
-        # Create a simple prompt with just the system message and user question
+        # Create a simple prompt
         prompt = ChatPromptTemplate.from_messages([
-            ("system", DEFAULT_SYSTEM_MESSAGE),
-            ("user", question.question)
+            ("system", "You are a helpful AI assistant. Please provide clear and concise responses."),
+            ("user", "{question}")
         ])
         
         # Create chain and invoke
         chain = prompt | llm | output_parser
         
-        # Get response with proper parameter passing
+        # Get response
         response = chain.invoke({"question": question.question})
         
-        return {
-            "answer": response
-        }
+        return {"answer": response}
         
     except Exception as e:
-        # Log the error (you might want to use proper logging here)
-        print(f"Error: {str(e)}")
+        print(f"Error: {str(e)}")  # For debugging
         raise HTTPException(
-            status_code=500, 
-            detail=f"An error occurred while processing your request: {str(e)}"
+            status_code=500,
+            detail=f"An error occurred: {str(e)}"
         )
 
 if __name__ == "__main__":
