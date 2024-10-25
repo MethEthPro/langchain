@@ -27,7 +27,7 @@ class Question(BaseModel):
 
 # Initialize prompt template
 prompt = ChatPromptTemplate.from_messages([
-    ("system", "You are a helpful assistant. Please response to the user queries"),
+    ("system", "You are a clothing service customer bot , help the user accordingly."),
     ("user", "Question:{question}")
 ])
 
